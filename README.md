@@ -10,4 +10,4 @@ Quando a tela foi primeiro lançada, achei crua, pensei que necessitava-se de al
 
 1 - Os dados são guardados no próprio SUPABASE. O Lovable perguntou se queria que fosse registrado na nuvem, entretanto, achei melhor que fosse guardado em algo privado por serem informações sigilosas.
 
-2 - Quando a linha é apagada no próprio SUPABASE ela também some no painel, ou seja, não há conflito ou crash, é a própria conexão entre o BACKEND e o FRONTEND juntos, sincronizados.
+2 - Quando a linha é apagada no próprio SUPABASE ela também some no painel, ou seja, não há conflito ou crash, é a própria conexão entre o BACKEND e o FRONTEND juntos, sincronizados!!!
