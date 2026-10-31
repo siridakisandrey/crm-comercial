@@ -29,6 +29,7 @@ import {
   isSupabaseConfigured,
   leadsQueryOptions,
   updateLeadEtapa,
+  updateLeadValor,
 } from "@/lib/leads";
 import { ETAPAS, formatValor, isEtapa, parseValor, type Etapa, type Lead } from "@/lib/leads-format";
 import { cn } from "@/lib/utils";
@@ -170,7 +171,9 @@ function LeadsTable({ leads }: { leads: Lead[] }) {
                 <td className="px-5 py-4 font-mono text-xs text-muted-foreground">{lead.id}</td>
                 <td className="px-5 py-4 font-medium">{lead.Nome}</td>
                 <td className="px-5 py-4 text-muted-foreground">{lead.Empresa}</td>
-                <td className="px-5 py-4 text-right font-mono">{lead.Valor}</td>
+                <td className="px-5 py-2 text-right font-mono">
+                  <ValorCell lead={lead} />
+                </td>
                 <td className="px-5 py-3">
                   <EtapaSelect lead={lead} />
                 </td>
@@ -374,5 +377,73 @@ function NewLeadDialog() {
         </form>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function ValorCell({ lead }: { lead: Lead }) {
+  const queryClient = useQueryClient();
+  const key = leadsQueryOptions().queryKey;
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState("");
+
+  const mutation = useMutation({
+    mutationFn: (valor: string) => updateLeadValor(lead.id, valor),
+    onMutate: async (valor) => {
+      await queryClient.cancelQueries({ queryKey: key });
+      const previous = queryClient.getQueryData<Lead[]>(key);
+      queryClient.setQueryData<Lead[]>(key, (old) =>
+        old?.map((l) => (l.id === lead.id ? { ...l, Valor: valor } : l)),
+      );
+      return { previous };
+    },
+    onError: (err, _v, ctx) => {
+      if (ctx?.previous) queryClient.setQueryData(key, ctx.previous);
+      toast.error("Não foi possível mudar o valor", { description: err.message });
+    },
+    onSuccess: (_d, valor) => toast.success(`${lead.Nome} → ${valor}`),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: key }),
+  });
+
+  const save = () => {
+    setEditing(false);
+    const numero = Number(draft);
+    if (draft.trim() === "" || !Number.isFinite(numero) || numero < 0) return;
+    const valor = formatValor(numero);
+    if (valor !== lead.Valor) mutation.mutate(valor);
+  };
+
+  if (editing) {
+    return (
+      <Input
+        autoFocus
+        type="number"
+        min={0}
+        step={1}
+        aria-label={`Valor de ${lead.Nome}`}
+        className="ml-auto h-8 w-32 text-right font-mono"
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={save}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") save();
+          if (e.key === "Escape") setEditing(false);
+        }}
+      />
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      title="Clique para editar"
+      aria-label={`Editar valor de ${lead.Nome}`}
+      className="rounded-md px-2 py-1 font-mono hover:bg-muted"
+      onClick={() => {
+        setDraft(String(parseValor(lead.Valor)));
+        setEditing(true);
+      }}
+    >
+      {lead.Valor}
+    </button>
   );
 }
