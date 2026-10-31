@@ -70,7 +70,7 @@ function Index() {
           <p className="font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground">
             CRM Comercial
           </p>
-          <h1 className="mt-2 text-4xl font-semibold sm:text-5xl">Pipeline de leads</h1>
+          <h1 className="mt-2 text-4xl font-semibold sm:text-5xl">Tabela de Leads</h1>
         </div>
         {isSupabaseConfigured && <NewLeadDialog />}
       </header>
