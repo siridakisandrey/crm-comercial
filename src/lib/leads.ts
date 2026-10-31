@@ -54,3 +54,14 @@ export async function deleteLead(id: number): Promise<void> {
   const { error } = await client().from("leads").delete().eq("id", id);
   if (error) throw new Error(error.message);
 }
+
+export async function updateLeadValor(id: number, valor: string): Promise<Lead> {
+  const { data, error } = await client()
+    .from("leads")
+    .update({ Valor: valor })
+    .eq("id", id)
+    .select(COLUMNS)
+    .single();
+  if (error) throw new Error(error.message);
+  return data as Lead;
+}
