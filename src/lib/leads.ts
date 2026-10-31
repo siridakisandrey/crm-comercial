@@ -3,9 +3,9 @@ import { queryOptions } from "@tanstack/react-query";
 
 import type { Etapa, Lead } from "./leads-format";
 
-const url = import.meta.env.VITE_SUPABASE_URL as string | undefined;
-const key = (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ??
-  import.meta.env.VITE_SUPABASE_ANON_KEY) as string | undefined;
+const env = import.meta.env as Record<string, string | undefined>;
+const url = env["VITE_SUPABASE_URL"];
+const key = env["VITE_SUPABASE_PUBLISHABLE_KEY"] ?? env["VITE_SUPABASE_ANON_KEY"];
 
 export const isSupabaseConfigured = Boolean(url && key);
 

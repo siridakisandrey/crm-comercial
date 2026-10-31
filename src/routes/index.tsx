@@ -201,7 +201,7 @@ function EtapaSelect({ lead }: { lead: Lead }) {
   const current = isEtapa(lead.Etapa) ? lead.Etapa : undefined;
 
   return (
-    <Select value={current} onValueChange={(v) => isEtapa(v) && mutation.mutate(v)}>
+    <Select value={current ?? ""} onValueChange={(v) => isEtapa(v) && mutation.mutate(v)}>
       <SelectTrigger
         aria-label={`Etapa de ${lead.Nome}`}
         className={cn(
