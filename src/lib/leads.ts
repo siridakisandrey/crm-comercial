@@ -49,3 +49,8 @@ export async function updateLeadEtapa(id: number, etapa: Etapa): Promise<Lead> {
   if (error) throw new Error(error.message);
   return data as Lead;
 }
+
+export async function deleteLead(id: number): Promise<void> {
+  const { error } = await client().from("leads").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+}

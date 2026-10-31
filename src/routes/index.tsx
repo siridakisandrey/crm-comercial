@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { Plus, Plug, AlertTriangle } from "lucide-react";
+import { Plus, Plug, AlertTriangle, Trash2 } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
 
@@ -23,7 +23,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { createLead, isSupabaseConfigured, leadsQueryOptions, updateLeadEtapa } from "@/lib/leads";
+import {
+  createLead,
+  deleteLead,
+  isSupabaseConfigured,
+  leadsQueryOptions,
+  updateLeadEtapa,
+} from "@/lib/leads";
 import { ETAPAS, formatValor, isEtapa, parseValor, type Etapa, type Lead } from "@/lib/leads-format";
 import { cn } from "@/lib/utils";
 
@@ -155,6 +161,7 @@ function LeadsTable({ leads }: { leads: Lead[] }) {
               <th className="px-5 py-3 font-medium">Empresa</th>
               <th className="px-5 py-3 text-right font-medium">Valor</th>
               <th className="px-5 py-3 font-medium">Etapa</th>
+              <th className="px-3 py-3"><span className="sr-only">Ações</span></th>
             </tr>
           </thead>
           <tbody>
@@ -166,6 +173,9 @@ function LeadsTable({ leads }: { leads: Lead[] }) {
                 <td className="px-5 py-4 text-right font-mono">{lead.Valor}</td>
                 <td className="px-5 py-3">
                   <EtapaSelect lead={lead} />
+                </td>
+                <td className="px-3 py-3 text-right">
+                  <DeleteLeadButton lead={lead} />
                 </td>
               </tr>
             ))}
@@ -222,6 +232,54 @@ function EtapaSelect({ lead }: { lead: Lead }) {
         ))}
       </SelectContent>
     </Select>
+  );
+}
+
+function DeleteLeadButton({ lead }: { lead: Lead }) {
+  const queryClient = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const mutation = useMutation({
+    mutationFn: () => deleteLead(lead.id),
+    onSuccess: () => {
+      queryClient.setQueryData<Lead[]>(leadsQueryOptions().queryKey, (old) =>
+        old?.filter((l) => l.id !== lead.id),
+      );
+      queryClient.invalidateQueries({ queryKey: leadsQueryOptions().queryKey });
+      toast.success("Lead excluído", { description: lead.Nome });
+      setOpen(false);
+    },
+    onError: (err) => toast.error("Não foi possível excluir o lead", { description: err.message }),
+  });
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label={`Excluir ${lead.Nome}`}
+          className="text-muted-foreground hover:text-destructive"
+        >
+          <Trash2 />
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle className="font-display text-2xl">Excluir lead?</DialogTitle>
+          <DialogDescription>
+            {lead.Nome} ({lead.Empresa}) será removido da tabela. Essa ação não pode ser desfeita.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setOpen(false)}>
+            Cancelar
+          </Button>
+          <Button variant="destructive" disabled={mutation.isPending} onClick={() => mutation.mutate()}>
+            {mutation.isPending ? "Excluindo..." : "Excluir"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
